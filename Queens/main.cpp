@@ -38,6 +38,8 @@
 #include <vector>
 #include <queue>
 
+const std::string INPUT_FILE_NAME = "input.txt";
+const std::string OUTPUT_FILE_NAME = "output.txt";
 const std::string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
 std::vector<std::vector<int>> getSolutions(int N) {
@@ -58,7 +60,7 @@ std::vector<std::vector<int>> getSolutions(int N) {
         for (int col = 0; col < N; col++) {
             bool isSafe = true;
             for (int i = 0; i < queens.size(); i++) {
-                if (col == queens[i] || abs(row - i) == abs(col - queens[i])) {
+                if (row == i || col == queens[i] || abs(row - i) == abs(col - queens[i])) {
                     isSafe = false;
                     break;
                 }
@@ -75,10 +77,7 @@ std::vector<std::vector<int>> getSolutions(int N) {
 }
 
 std::ifstream getFileInput() {
-    std::string fileNameInput;
-    std::cout << "Enter name first INPUT file: " << std::endl;
-    std::cin >> fileNameInput;
-    std::ifstream fileInput(fileNameInput);
+    std::ifstream fileInput(INPUT_FILE_NAME);
     if (!fileInput.is_open()) {
         throw std::runtime_error("Error to open first INPUT file");
     }
@@ -86,13 +85,13 @@ std::ifstream getFileInput() {
 }
 
 std::ofstream getFileOutput() {
-    std::ofstream fileOutputClear("output.txt", std::ios::trunc);
+    std::ofstream fileOutputClear(OUTPUT_FILE_NAME, std::ios::trunc);
     if (!fileOutputClear.is_open()) {
         throw std::runtime_error("Error to open first OUTPUT file");
     }
     fileOutputClear.close();
 
-    std::ofstream fileOutput("output.txt", std::ios::app);
+    std::ofstream fileOutput(OUTPUT_FILE_NAME, std::ios::app);
     if (!fileOutput.is_open()) {
         throw std::runtime_error("Error to open first OUTPUT file");
     }
@@ -104,7 +103,6 @@ int getAmountQueens(std::ifstream &fileInput) {
     int N = 0;
     if (std::getline(fileInput, line)) {
         N = std::stoi(line);
-        std::cout << N << std::endl;
         if (N < 1 || N > 12) {
             throw std::runtime_error("Invalid size");
         }
@@ -112,7 +110,7 @@ int getAmountQueens(std::ifstream &fileInput) {
     return N;
 }
 
-void printSolutions(const std::vector<std::vector<int>> &solutions) {
+void printSolutions(const std::vector<std::vector<int>> &solutions, std::ofstream &fileOutput) {
     int N = solutions.size();
     for (int i = 0; i < N; i++) {
         std::string answer;
@@ -123,9 +121,11 @@ void printSolutions(const std::vector<std::vector<int>> &solutions) {
             answer += std::to_string(row + 1);
             answer += " ";
         }
-        std::cout << answer << std::endl;
+        answer += "\n";
+        fileOutput << answer;
     }
-    std::cout << N << " positions" << std::endl;
+    std::string amountPosition = std::to_string(N) + " positions";
+    fileOutput << amountPosition;
 }
 
 void getAnswer() {
@@ -134,7 +134,7 @@ void getAnswer() {
     int N = getAmountQueens(fileInput);
 
     std::vector<std::vector<int>> solutions = getSolutions(N);
-    printSolutions(solutions);
+    printSolutions(solutions, fileOutput);
 }
 
 int main() {
