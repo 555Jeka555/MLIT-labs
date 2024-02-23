@@ -36,45 +36,12 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <queue>
 
 const std::string INPUT_FILE_NAME = "input.txt";
 const std::string OUTPUT_FILE_NAME = "output.txt";
 const std::string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
-
-std::vector<std::vector<int>> getSolutions(int N) {
-    std::vector<std::vector<int>> solutions;
-    std::queue<std::pair<int, std::vector<int>>> queue;
-    queue.push({0, {}});
-
-    while (!queue.empty()) {
-        int row = queue.front().first;
-        std::vector<int> queens = queue.front().second;
-        queue.pop();
-
-        if (row == N) {
-            solutions.push_back(queens);
-            continue;
-        }
-
-        for (int col = 0; col < N; col++) {
-            bool isSafe = true;
-            for (int i = 0; i < queens.size(); i++) {
-                if (row == i || col == queens[i] || abs(row - i) == abs(col - queens[i])) {
-                    isSafe = false;
-                    break;
-                }
-            }
-            if (isSafe) {
-                std::vector<int> newQueens = queens;
-                newQueens.push_back(col);
-                queue.push({row + 1, newQueens});
-            }
-        }
-    }
-
-    return solutions;
-}
 
 std::ifstream getFileInput() {
     std::ifstream fileInput(INPUT_FILE_NAME);
@@ -110,6 +77,95 @@ int getAmountQueens(std::ifstream &fileInput) {
     return N;
 }
 
+std::string printQueens(std::vector<std::pair<int, int>> queens) {
+    std::string answer;
+    for (auto queen: queens) {
+        answer += ALPHABET[queen.second];
+        answer += std::to_string(queen.first + 1);
+        answer += " ";
+    }
+    return answer;
+}
+
+std::vector<std::vector<std::pair<int, int>>> getSolutionsByBFS(int N) {
+    std::vector<std::vector<std::pair<int, int>>> solutions;
+    std::queue<std::pair<int, std::vector<std::pair<int, int>>>> queue;
+
+    for (int col = 0; col < N; col++) {
+        std::vector<std::pair<int, int>> queens;
+        queens.push_back({0, col});
+        queue.push({0, queens});
+    }
+
+    while (!queue.empty()) {
+        int startRow = queue.front().first;
+        int nextRow = startRow + 1;
+        std::vector<std::pair<int, int>> queens = queue.front().second;
+        queue.pop();
+
+        if (queens.size() == N) {
+            solutions.push_back(queens);
+            continue;
+        }
+
+        for (int col = 0; col < N; col++) {
+            bool isSafe = true;
+
+            for (auto queen: queens) {
+                if (queen.second == col
+                    || abs(nextRow - queen.first) == abs(col - queen.second)
+                        ) {
+                    isSafe = false;
+                    break;
+                }
+            }
+            if (isSafe) {
+                std::vector<std::pair<int, int>> newQueens = queens;
+                newQueens.emplace_back(nextRow, col);
+                queue.push({nextRow, newQueens});
+            }
+        }
+    }
+
+    return solutions;
+}
+
+std::vector<std::vector<int>> getSolutionsByVector(int N) {
+    std::vector<std::vector<int>> solutions;
+    std::queue<std::pair<int, std::vector<int>>> queue;
+    queue.push({0, {}});
+
+    while (!queue.empty()) {
+        int row = queue.front().first;
+        std::vector<int> queens = queue.front().second;
+
+        queue.pop();
+
+        if (row == N) {
+            solutions.push_back(queens);
+            continue;
+        }
+
+        for (int col = 0; col < N; col++) {
+            bool isSafe = true;
+            for (int i = 0; i < queens.size(); i++) {
+                if (col == queens[i] || abs(row - i) == abs(col - queens[i])) {
+                    isSafe = false;
+                    break;
+                }
+            }
+            if (isSafe) {
+                std::vector<int> newQueens = queens;
+
+                newQueens.push_back(col);
+                queue.push({row + 1, newQueens});
+            }
+        }
+    }
+
+    return solutions;
+}
+
 void printSolutions(const std::vector<std::vector<int>> &solutions, std::ofstream &fileOutput) {
     int N = solutions.size();
     for (int i = 0; i < N; i++) {
@@ -128,19 +184,35 @@ void printSolutions(const std::vector<std::vector<int>> &solutions, std::ofstrea
     fileOutput << amountPosition;
 }
 
+
+void printSolutionsByPair(std::vector<std::vector<std::pair<int, int>>> solutionsByBFS, std::ofstream &fileOutput) {
+    for (const auto &solution: solutionsByBFS) {
+        std::string answer = printQueens(solution);
+        answer += "\n";
+        fileOutput << answer;
+    }
+    std::string amountPosition = std::to_string(solutionsByBFS.size()) + " positions";
+    fileOutput << amountPosition;
+}
+
 void getAnswer() {
     std::ifstream fileInput = getFileInput();
     std::ofstream fileOutput = getFileOutput();
     int N = getAmountQueens(fileInput);
 
-    std::vector<std::vector<int>> solutions = getSolutions(N);
-    printSolutions(solutions, fileOutput);
+//    std::vector<std::vector<int>> solutionsByVector = getSolutionsByVector(N);
+//    printSolutions(solutionsByVector, fileOutput);
+
+    std::vector<std::vector<std::pair<int, int>>> solutionsByBFS = getSolutionsByBFS(N);
+    printSolutionsByPair(solutionsByBFS, fileOutput);
+
+//    printSolutions(solutionsByBFS, fileOutput);
 }
 
 int main() {
     try {
         getAnswer();
-    } catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
