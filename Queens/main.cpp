@@ -104,6 +104,9 @@ std::vector<std::vector<std::pair<int, int>>> getSolutionsByBFS(int N) {
         queue.pop();
 
         if (queens.size() == N) {
+            std::sort(queens.begin(), queens.end(), [](const auto& a, const auto& b) {
+                return a.second < b.second;
+            });
             solutions.push_back(queens);
             continue;
         }
@@ -184,7 +187,6 @@ void printSolutions(const std::vector<std::vector<int>> &solutions, std::ofstrea
     fileOutput << amountPosition;
 }
 
-
 void printSolutionsByPair(std::vector<std::vector<std::pair<int, int>>> solutionsByBFS, std::ofstream &fileOutput) {
     for (const auto &solution: solutionsByBFS) {
         std::string answer = printQueens(solution);
@@ -193,6 +195,19 @@ void printSolutionsByPair(std::vector<std::vector<std::pair<int, int>>> solution
     }
     std::string amountPosition = std::to_string(solutionsByBFS.size()) + " positions";
     fileOutput << amountPosition;
+}
+
+bool compare(const std::vector<std::pair<int, int>>& a, const std::vector<std::pair<int, int>>& b) {
+    if (a.empty() && !b.empty()) {
+        return true;
+    }
+    if (b.empty() && !a.empty()) {
+        return false;
+    }
+    if (a.empty() && b.empty()) {
+        return false;
+    }
+    return a[0].first < b[0].first;
 }
 
 void getAnswer() {
@@ -204,8 +219,8 @@ void getAnswer() {
 //    printSolutions(solutionsByVector, fileOutput);
 
     std::vector<std::vector<std::pair<int, int>>> solutionsByBFS = getSolutionsByBFS(N);
+    std::sort(solutionsByBFS.begin(), solutionsByBFS.end(), compare);
     printSolutionsByPair(solutionsByBFS, fileOutput);
-
 //    printSolutions(solutionsByBFS, fileOutput);
 }
 
