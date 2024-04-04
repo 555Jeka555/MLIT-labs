@@ -39,7 +39,7 @@
 
 const int MIN_LENGTH = 1;
 const int MAX_LENGTH = 300;
-const std::string INPUT_FILE_NAME = "input3.txt";
+const std::string INPUT_FILE_NAME = "input5.txt";
 const std::string OUTPUT_FILE_NAME = "output.txt";
 
 std::ifstream getFileInput() {
@@ -106,7 +106,7 @@ int main() {
     std::ifstream fileInput = getFileInput();
     std::ofstream fileOutput = getFileOutput();
 
-    int N;
+    int N, M = INT_MIN;
     fileInput >> N;
 
     if (N < MIN_LENGTH || N > MAX_LENGTH) {
@@ -114,11 +114,12 @@ int main() {
         return 1;
     }
 
-    std::vector<std::vector<int>> graph(N + 1);
+    std::vector<std::vector<int>> graph(MAX_LENGTH + 1);
 
     for (int i = 1; i <= N; ++i) {
         int X, Y;
         fileInput >> X >> Y;
+        M = std::max(M, std::max(X, Y));
         graph[X].push_back(Y);
     }
 
@@ -165,9 +166,9 @@ int main() {
     } else {
         fileOutput << "Yes" << std::endl;
 
-        std::vector<bool> visited(N + 1, false);
+        std::vector<bool> visited(M + 1, false);
         std::vector<int> result;
-        for (int i = 1; i < N; ++i) {
+        for (int i = 1; i <= M; ++i) {
             if (!visited[i]) {
                 topologicalSort(i, graph, visited, result);
             }
