@@ -36,10 +36,11 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <unordered_set>
 
 const int MIN_LENGTH = 1;
 const int MAX_LENGTH = 300;
-const std::string INPUT_FILE_NAME = "input5.txt";
+const std::string INPUT_FILE_NAME = "test/input3.txt";
 const std::string OUTPUT_FILE_NAME = "output.txt";
 
 std::ifstream getFileInput() {
@@ -64,12 +65,25 @@ std::ofstream getFileOutput() {
     return fileOutput;
 }
 
-bool hasCycleUtil(int current, std::vector<std::vector<int>>& graph, std::vector<bool>& visited, std::vector<bool>& recursion_stack) {
+bool hasCycleUtil(int current,
+                  std::vector<std::vector<int>>& graph,
+                  std::vector<bool>& visited,
+                  std::vector<bool>& recursion_stack,
+                  std::vector<int>& recursion_vertex) {
     visited[current] = true;
     recursion_stack[current] = true;
 
     for (int next : graph[current]) {
-        if (!visited[next] && hasCycleUtil(next, graph, visited, recursion_stack) || recursion_stack[next]) {
+        if (!visited[next] && hasCycleUtil(next, graph, visited, recursion_stack, recursion_vertex) || recursion_stack[next]) {
+
+            if (recursion_vertex.empty()) {
+                for (int i = next; i < recursion_stack.size(); i++) {
+                    if (recursion_stack[i]) {
+                        recursion_vertex.push_back(i);
+                    }
+                }
+            }
+
             return true;
         }
     }
@@ -81,9 +95,10 @@ bool hasCycleUtil(int current, std::vector<std::vector<int>>& graph, std::vector
 bool hasCycle(int N, std::vector<std::vector<int>>& graph) {
     std::vector<bool> visited(N + 1, false);
     std::vector<bool> recursion_stack(N + 1, false);
+    std::vector<int> recursion_vertex;
 
     for (int i = 1; i <= N; ++i) {
-        if (!visited[i] && hasCycleUtil(i, graph, visited, recursion_stack)) {
+        if (!visited[i] && hasCycleUtil(i, graph, visited, recursion_stack, recursion_vertex)) {
             return true;
         }
     }
@@ -100,6 +115,24 @@ void topologicalSort(int current, std::vector<std::vector<int>>& graph, std::vec
     }
 
     result.push_back(current);
+}
+
+char findDuplicate(const std::string& str) {
+    std::unordered_set<char> seen;
+
+    for (char ch : str) {
+        if (ch == ' ') {
+            continue;
+        }
+
+        if (seen.count(ch)) {
+            return ch;
+        } else {
+            seen.insert(ch);
+        }
+    }
+
+    return '\0';
 }
 
 int main() {
@@ -127,8 +160,9 @@ int main() {
         fileOutput << "No" << std::endl;
         std::vector<bool> visited(N + 1, false);
         std::vector<bool> recursion_stack(N + 1, false);
+        std::vector<int> recursion_vertex;
         for (int i = 1; i <= N; ++i) {
-            if (!visited[i] && hasCycleUtil(i, graph, visited, recursion_stack)) {
+            if (!visited[i] && hasCycleUtil(i, graph, visited, recursion_stack, recursion_vertex)) {
                 std::string result = std::to_string(i) + " ";
 
                 int current = graph[i][0];
@@ -150,7 +184,43 @@ int main() {
                         break;
                     }
                     result += std::to_string(current) + " ";
-                    current = graph[current][0];
+
+                    char duplicate = findDuplicate(result);
+                    if (duplicate != '\0') {
+                        size_t start_pos = result.find(duplicate);
+
+                        if (start_pos != std::string::npos) {
+                            size_t end_pos = result.find(duplicate, start_pos + 1);
+
+                            if (end_pos != std::string::npos) {
+                                result = result.substr(start_pos, end_pos - start_pos + 1);
+                            }
+                        }
+                        isIndexCycle = false;
+                        break;
+                    }
+
+                    if (graph[current].empty()) {
+                        break;
+                    }
+
+                    int nextIndex = 0;
+                    while (true) {
+                        bool isFind = false;
+
+                        for (auto j : recursion_vertex) {
+                            if (graph[current][nextIndex] == j) {
+                                current = graph[current][nextIndex];
+                                isFind = true;
+                                break;
+                            }
+                        }
+                        if (isFind) {
+                            break;
+                        }
+
+                        nextIndex++;
+                    }
                     isFirst = false;
                 }
 
