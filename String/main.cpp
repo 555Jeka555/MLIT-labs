@@ -1,14 +1,29 @@
+// Выполнил: Антышев Евгений
+// Группа: ПС-21
+//
+// 13.4. Строка (4)
+// В заданной строке символов из заглавных латинских букв найти подстроку, которая включает наибольшее количество букв,
+// встречающихся в этой подстроке в единственном экземпляре. Если таких строк несколько, выдать наименьшую по алфавиту.
+// Ввод из файла INPUT.TXT. В первой строке записана длина заданной строки N (1 ≤ N ≤106). Во второй строке -  N заглавных латинских букв,
+// определяющих заданную строку.
+// Вывод в файл OUTPUT.TXT. В единственную строку вывести подстроку с наибольшим количеством букв, встречающихся один раз.
+// Ограничение. Объем используемой памяти до 1 Мгб.
+// Примеры
+// Ввод 1              Ввод 2           Ввод 3
+// 5                   5                6
+// ABBAC               OLYMP            DACDAC
+// Вывод 1             Вывод 2          Вывод 3
+// BAC                 OLYMP            ACD
+//
+// IDE: CLion 2023
+// C++: C++ 17
+
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 
-using namespace std;
-
-const int MIN_LENGTH = 1;
-const int MAX_LENGTH = 300;
-const std::string INPUT_FILE_NAME = "input-big.txt";
-const std::string OUTPUT_FILE_NAME = "output-big.txt";
+const std::string INPUT_FILE_NAME = "input11.txt";
+const std::string OUTPUT_FILE_NAME = "output.txt";
 
 std::ifstream getFileInput() {
     std::ifstream fileInput(INPUT_FILE_NAME);
@@ -32,41 +47,23 @@ std::ofstream getFileOutput() {
     return fileOutput;
 }
 
-string findMaxUniqueSubstring(const string& s) {
-    int N = s.size();
-    if (N == 0) {
-        return "";
-    }
+std::string findMaxUniqueSubstring(std::ifstream& fileInput) {
+    std::string result;
+    std::string current;
 
-    unordered_map<char, int> charCount;
-    int left = 0;
-    int maxLength = 0;
-    string result = "";
-    unordered_map<char, int> uniqueChars;
-
-    for (int right = 0; right < N; right++) {
-        charCount[s[right]]++;
-
-        // Обновляем множество уникальных букв
-        if (charCount[s[right]] == 1) {
-            uniqueChars[s[right]] = right;
+    char c;
+    while (fileInput >> c) {
+        auto cFinded = current.find(c);
+        current += c;
+        if (cFinded != -1)
+        {
+            current.erase(current.begin(), current.begin() + cFinded + 1);
+        }
+        if (current.length() > result.length() || (current.length() == result.length() && current <= result))
+        {
+            result = current;
         }
 
-        // Пока в подстроке есть более одного вхождения какой-либо буквы
-        while (uniqueChars.size() != right - left + 1) {
-            charCount[s[left]]--;
-            if (charCount[s[left]] == 0) {
-                uniqueChars.erase(s[left]);
-            }
-            left++;
-        }
-
-        // Проверяем, если текущая подстрока лучше предыдущей на основе условий задачи
-        if (uniqueChars.size() > maxLength ||
-           (uniqueChars.size() == maxLength && s.substr(left, right - left + 1) < result)) {
-            maxLength = uniqueChars.size();
-            result = s.substr(left, right - left + 1);
-        }
     }
 
     return result;
@@ -79,12 +76,10 @@ int main() {
     int N;
     fileInput >> N;
 
-    string s;
-    fileInput >> s;
-
-    string result = findMaxUniqueSubstring(s);
+    // TODO Считать по символам вместо строки
+    std::string result = findMaxUniqueSubstring(fileInput);
 
     fileOutput << result;
-    
+
     return 0;
 }
