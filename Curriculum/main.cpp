@@ -40,7 +40,7 @@
 
 const int MIN_LENGTH = 1;
 const int MAX_LENGTH = 300;
-const std::string INPUT_FILE_NAME = "test/input3.txt";
+const std::string INPUT_FILE_NAME = "test/input5.txt";
 const std::string OUTPUT_FILE_NAME = "output.txt";
 
 std::ifstream getFileInput() {
